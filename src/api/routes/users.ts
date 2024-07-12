@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 
 import { users } from "../../utils/constants";
+import { resolveIndexByUserId } from "../../middlewares/resolveUserIndex";
+import { ExtendedRequest } from "../../../types";
 
 interface UserType {
   id: number;
@@ -27,21 +29,19 @@ const router: Router = Router();
 //   return res.send(users);
 // });
 
-router.get("/api/users", (req: Request, res: Response) => {
-  res.status(201).send(users);
-});
-
-router.get("/api/users/:id", (req: Request, res: Response) => {
-  const {
-    params: { id },
-  } = req;
-
-  const parsedId = parseInt(id);
-
-  const user = users.find((user) => user.id === parsedId);
-  if (isNaN(parsedId)) {
-    return res.status(400).send({ msg: "Bad Request. Invalid ID" });
+router.get(
+  "/api/users",
+  (req: Request, res: Response) => {
+    res.status(201).send(users);
   }
+);
+
+router.get("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response) => {
+  const { findUserIndex } = req;
+
+  const index = Number(findUserIndex);
+  const user = users[index];
+
   if (!user) {
     return res.status(404).send({ message: "User not found" });
   }
@@ -60,5 +60,25 @@ router.post("/api/users", (req: Request, res: Response) => {
 
   return res.send(users);
 });
+
+router.patch("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response) => {
+  const { body, findUserIndex} = req;
+
+  const index = Number(findUserIndex);
+  const user = users[index];
+
+  users[index] = {...users[index], ...body}
+
+  return res.status(200).send(user);
+});
+
+router.delete("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response)=> {
+  const { findUserIndex } = req;
+
+  const index = Number(findUserIndex);
+  users.splice(index, 1);
+
+  return res.status(200).send(users);
+})
 
 export default router;
