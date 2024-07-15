@@ -18,3 +18,10 @@ export interface UserType {
   email: string;
   password: string;
 }
+
+export interface TaskType {
+  id: number;
+  title: string;
+  description: string;
+  status: "completed" | "pending" | "in progress";
+}
