@@ -2,13 +2,9 @@ import { Router, Request, Response } from "express";
 
 import { users } from "../../utils/constants";
 import { resolveIndexByUserId } from "../../middlewares/resolveUserIndex";
+import { checkSchema, matchedData, validationResult } from "express-validator";
 import { ExtendedRequest } from "../../../types";
-
-interface UserType {
-  id: number;
-  name: string;
-  email: string;
-}
+import { loginValidationSchema } from "../../utils/validationSchema";
 
 const router: Router = Router();
 
@@ -32,6 +28,7 @@ const router: Router = Router();
 router.get(
   "/api/users",
   (req: Request, res: Response) => {
+    console.log(req.session);
     res.status(201).send(users);
   }
 );
@@ -49,8 +46,15 @@ router.get("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: R
   return res.send(user);
 });
 
-router.post("/api/users", (req: Request, res: Response) => {
+router.post("/api/users", checkSchema(loginValidationSchema), (req: Request, res: Response) => {
   const { body } = req;
+
+  const result =  validationResult(req);
+  console.log(result);
+
+  if (!result.isEmpty()) {
+    return res.status(400).send(result.array()[0].msg);
+  }
 
   const newUser = {
     id: users[users.length - 1].id + 1,
