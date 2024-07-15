@@ -1,4 +1,4 @@
-export const fieldValidationSchema = {
+export const loginValidationSchema = {
   name:{
     notEmpty: {
       errorMessage: 'Username is cannot be empty'
@@ -6,10 +6,10 @@ export const fieldValidationSchema = {
   },
   email: {
     notEmpty: {
-      errorMessage: 'Email is cannot be empty'
+      errorMessage: 'Email cannot be empty'
     },
     isString: {
-      errorMessage: "email must be a string"
+      errorMessage: "Email must be a string"
     }
   },
   password: {
@@ -17,5 +17,19 @@ export const fieldValidationSchema = {
       errorMessage: "Password cannot be empty",
     },
   },
-
 }
+
+// export const queryValidationSchema = {
+//   filter: {
+//     in: ['name', 'email'],
+//     errorMessage: "Filter must be either 'name' or 'email'"
+//   },
+//   value: {
+//     notEmpty: {
+//       errorMessage: "Value cannot be empty"
+//     },
+//     isString: {
+//       errorMessage: "Value must be a string"
+//     }
+//   }
+// }
