@@ -5,7 +5,12 @@ import { TaskType } from "../../../types";
 const router: Router = Router();
 
 router.get("/api/tasks", (req, res) => {
-  res.send(tasks);
+  console.log(req.headers.cookie);
+  if (req.cookies.hello && req.cookies.hello === "world") {
+    res.send(tasks);
+  }
+
+  res.send({msg: "Sorry, you need the correct cookies."})
 });
 router.get("/api/tasks/pending", (req, res) => {
   const task = tasks.find((task) => task.status === "pending");
