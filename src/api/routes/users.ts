@@ -1,10 +1,11 @@
 import { Router, Request, Response } from "express";
-
-import { users } from "../../utils/constants";
-import { resolveIndexByUserId } from "../../middlewares/resolveUserIndex";
 import { checkSchema, matchedData, validationResult } from "express-validator";
-import { ExtendedRequest } from "../../../types";
-import { loginValidationSchema } from "../../utils/validationSchema";
+
+import { resolveIndexByUserId } from "../../middlewares/resolveUserIndex";
+import { User } from "../../schemas/mongoose/user";
+
+import { userValidationSchema } from "../../utils/validationSchema";
+import { hashPassword } from "../../utils/helpers";
 
 const router: Router = Router();
 
@@ -25,64 +26,101 @@ const router: Router = Router();
 //   return res.send(users);
 // });
 
+router.get("/api/users", async (req: Request, res: Response) => {
+  console.log(req.session.id);
+  req.sessionStore.get(req.session.id, (error, sessionData) => {
+    if (error) {
+      console.log(error);
+    }
+    console.log(sessionData);
+  });
+
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.sendStatus(400);
+  }
+});
+
 router.get(
-  "/api/users",
-  (req: Request, res: Response) => {
-    console.log(req.session);
-    res.status(201).send(users);
+  "/api/users/:id",
+  async (req: Request, res: Response) => {
+    const {
+      params: { id },
+    } = req;
+
+    try {
+      const user = await User.findById(id);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return res.send(user);
+    } catch (error) {
+      console.log(error);
+      return res.sendStatus(404);
+    }
   }
 );
 
-router.get("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response) => {
-  const { findUserIndex } = req;
+router.post(
+  "/api/users",
+  checkSchema(userValidationSchema),
+  async (req: Request, res: Response) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).send(result.array()[0].msg);
+    }
 
-  const index = Number(findUserIndex);
-  const user = users[index];
+    const data = matchedData(req);
+    data.password = hashPassword(data.password);
 
-  if (!user) {
-    return res.status(404).send({ message: "User not found" });
+    console.log(data);
+
+    const user = new User(data);
+    try {
+      const savedUser = await user.save();
+      return res.status(201).send(savedUser);
+    } catch (error) {
+      console.log(error);
+      return res.sendStatus(400);
+    }
   }
+);
 
-  return res.send(user);
-});
-
-router.post("/api/users", checkSchema(loginValidationSchema), (req: Request, res: Response) => {
-  const { body } = req;
-
-  const result =  validationResult(req);
-  console.log(result);
-
-  if (!result.isEmpty()) {
-    return res.status(400).send(result.array()[0].msg);
+router.patch("/api/users/:id", async (req: Request, res: Response) => {
+  const {
+    params: { id },
+    body,
+  } = req;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(id, body);
+    if (!updatedUser) {
+      throw new Error("User not found!");
+    }
+    return res.status(200).send(updatedUser);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(404);
   }
-
-  const newUser = {
-    id: users[users.length - 1].id + 1,
-    ...body,
-  };
-  users.push(newUser);
-
-  return res.send(users);
 });
 
-router.patch("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response) => {
-  const { body, findUserIndex} = req;
+router.delete("/api/users/:id", async (req: Request, res: Response) => {
+  const {
+    params: { id },
+  } = req;
 
-  const index = Number(findUserIndex);
-  const user = users[index];
-
-  users[index] = {...users[index], ...body}
-
-  return res.status(200).send(user);
+  try {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(404);
+  }
 });
-
-router.delete("/api/users/:id", resolveIndexByUserId, (req: ExtendedRequest, res: Response)=> {
-  const { findUserIndex } = req;
-
-  const index = Number(findUserIndex);
-  users.splice(index, 1);
-
-  return res.status(200).send(users);
-})
 
 export default router;
