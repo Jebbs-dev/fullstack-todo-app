@@ -12,8 +12,13 @@ export interface ExtendedRequest extends Request {
   parsedId?: number;
 }
 
+interface ExtendedSession extends SessionData {
+  visited?: boolean;
+  user?: UserType;
+}
+
 export interface UserType {
-  id: number;
+  id: string;
   name: string;
   email: string;
   password: string;
