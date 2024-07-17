@@ -1,15 +1,18 @@
-export const loginValidationSchema = {
-  name:{
-    notEmpty: {
-      errorMessage: 'Username is cannot be empty'
-    },
-  },
+export const userValidationSchema = {
   email: {
     notEmpty: {
       errorMessage: 'Email cannot be empty'
     },
     isString: {
       errorMessage: "Email must be a string"
+    }
+  },
+  name:{
+    notEmpty: {
+      errorMessage: 'Name cannot be empty'
+    },
+    isString: {
+      errorMessage: "Name must be a string"
     }
   },
   password: {
