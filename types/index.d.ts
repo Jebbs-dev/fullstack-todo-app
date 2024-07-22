@@ -8,8 +8,7 @@ declare namespace Express {
 }
 
 export interface ExtendedRequest extends Request {
-  findUserIndex?: number;
-  parsedId?: number;
+  userId?: string;
 }
 
 interface ExtendedSession extends SessionData {
@@ -22,11 +21,4 @@ export interface UserType {
   name: string;
   email: string;
   password: string;
-}
-
-export interface TaskType {
-  id: number;
-  title: string;
-  description: string;
-  status: "completed" | "pending" | "in progress";
 }
