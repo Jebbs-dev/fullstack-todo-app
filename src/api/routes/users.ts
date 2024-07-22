@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { checkSchema, matchedData, validationResult } from "express-validator";
 
-import { resolveIndexByUserId } from "../../middlewares/resolveUserIndex";
 import { User } from "../../schemas/mongoose/user";
 
 import { userValidationSchema } from "../../utils/validationSchema";
 import { hashPassword } from "../../utils/helpers";
+
+import { ExtendedRequest } from "../../../types";
 
 const router: Router = Router();
 
@@ -27,31 +28,33 @@ const router: Router = Router();
 // });
 
 router.get("/api/users", async (req: Request, res: Response) => {
-  console.log(req.session.id);
-  req.sessionStore.get(req.session.id, (error, sessionData) => {
-    if (error) {
-      console.log(error);
-    }
-    console.log(sessionData);
-  });
-
+  // console.log(req.session.id);
+  // req.sessionStore.get(req.session.id, (error, sessionData) => {
+  //   if (error) {
+  //     console.log(error);
+  //   }
+  //   console.log(sessionData);
+  // });
   try {
     const users = await User.find();
+
     res.status(200).json(users);
   } catch (error) {
-    res.sendStatus(400);
+    console.log(error);
+    res.sendStatus(401);
   }
 });
 
 router.get(
   "/api/users/:id",
-  async (req: Request, res: Response) => {
+  async (req: ExtendedRequest, res: Response) => {
     const {
       params: { id },
     } = req;
 
     try {
       const user = await User.findById(id);
+
       if (!user) {
         throw new Error("User not found");
       }
@@ -94,8 +97,12 @@ router.patch("/api/users/:id", async (req: Request, res: Response) => {
     params: { id },
     body,
   } = req;
+  const password = body.password;
+  body.password = hashPassword(password);
+
   try {
-    const updatedUser = await User.findByIdAndUpdate(id, body);
+    const updatedUser = await User.findByIdAndUpdate(id, body, { new: true });
+
     if (!updatedUser) {
       throw new Error("User not found!");
     }
@@ -113,6 +120,7 @@ router.delete("/api/users/:id", async (req: Request, res: Response) => {
 
   try {
     const user = await User.findByIdAndDelete(id);
+
     if (!user) {
       throw new Error("User not found");
     }
