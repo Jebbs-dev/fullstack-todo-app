@@ -22,6 +22,24 @@ export const userValidationSchema = {
   },
 }
 
+export const taskValidation = {
+  title: {
+    notEmpty: {
+      errorMessage: "Title cannot be empty",
+    }
+  },
+  status: {
+    notEmpty: {
+      errorMessage: "Status cannot be empty",
+    }
+  },
+  priority: {
+    notEmpty: {
+      errorMessage: "Priority cannot be empty",
+    }
+  }
+}
+
 // export const queryValidationSchema = {
 //   filter: {
 //     in: ['name', 'email'],
