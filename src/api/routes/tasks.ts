@@ -1,44 +1,128 @@
-import { Router } from "express";
-import { tasks } from "../../utils/constants";
-import { TaskType } from "../../../types";
+import { Router, Request, Response } from "express";
+// import { tasks } from "../../utils/constants";
+import { ExtendedRequest, TaskType, UserType } from "../../../types";
+import { Task } from "../../schemas/mongoose/task";
+import { taskValidation } from "../../utils/validationSchema";
+import { checkSchema, matchedData, validationResult } from "express-validator";
+import { User } from "../../schemas/mongoose/user";
+import passport from "passport";
+import { resolveUserAuth } from "../../middlewares/resolveUserAuth";
 
 const router: Router = Router();
 
-router.get("/api/tasks", (req, res) => {
-  console.log(req.headers.cookie);
-  if (req.cookies.hello && req.cookies.hello === "world") {
-    res.send(tasks);
+router.get("/api/tasks", resolveUserAuth, async (req: ExtendedRequest, res: Response) => {
+  const { userId } = req;
+
+  try {
+    const tasks = await Task.find().where({userId});
+
+    if (tasks.length === 0) {
+      throw new Error("No tasks found");
+    }
+
+    res.status(200).send(tasks);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(404).send({error: "No tasks found"});
   }
-
-  res.send({msg: "Sorry, you need the correct cookies."})
-});
-router.get("/api/tasks/pending", (req, res) => {
-  const task = tasks.find((task) => task.status === "pending");
-  res.send(task);
 });
 
-router.get("/api/tasks/progressing", (req, res) => {
-  const task = tasks.find((task) => task.status === "in progress");
-  res.send(task);
-});
+router.post(
+  "/api/tasks",
+  resolveUserAuth,
+  checkSchema(taskValidation),
+  async (req: ExtendedRequest, res: Response) => {
+    const { userId } = req;
 
-router.get("/api/tasks/completed", (req, res) => {
-  const task = tasks.find((task) => task.status === "completed");
-  res.send(task);
-});
+    const result = validationResult(req);
 
-router.get("/api/tasks/:id", (req, res) => {
-  const { id } = req.params;
+    if (!result.isEmpty()) {
+      return res.status(400).send(result.array()[0].msg);
+    }
 
-  const parsedId = parseInt(id);
+    const data = matchedData(req);
 
-  const task = tasks.find((task: TaskType) => task.id === parsedId);
+    const user = await User.findById(userId);
 
-  if (!task) {
-    return res.status(404).send("Task not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const task = new Task({ ...data, userId });
+
+    try {
+      const newTask = await task.save();
+
+      // (user as any).tasks.push(newTask._id);
+      // await user.save();
+
+      return res.status(200).send(newTask);
+    } catch (error) {
+      console.log(error);
+      return res.sendStatus(401);
+    }
   }
+);
 
-  res.send(task);
+router.get("/api/tasks/:id", resolveUserAuth, async (req: ExtendedRequest, res: Response) => {
+  const {
+    params: { id },
+    userId,
+  } = req;
+
+  try {
+    const task = await Task.findById(id).where({userId});
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    return res.status(200).send(task);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+});
+
+router.patch("/api/tasks/:id", resolveUserAuth, async (req: ExtendedRequest, res: Response) => {
+  const {
+    params: { id },
+    userId,
+    body,
+  } = req;
+
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(id, body).where({userId});
+
+    if (!updatedTask) {
+      throw new Error("Task not found");
+    }
+
+    return res.status(200).send(updatedTask);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
+});
+
+router.delete("/api/tasks/:id", resolveUserAuth, async (req: ExtendedRequest, res: Response) => {
+  const {
+    params: { id },
+    userId,
+  } = req;
+
+  try {
+    const task = await Task.findByIdAndDelete(id).where({userId});
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    return res.status(200).send("Task deleted!");
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(400);
+  }
 });
 
 export default router;
