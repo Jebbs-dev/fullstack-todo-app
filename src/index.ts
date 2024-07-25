@@ -5,6 +5,7 @@ import passport from "passport";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import MongoStore from "connect-mongo";
+import cors from "cors";
 
 import "./strategies/local-strategy";
 import router from "./api/routes";
@@ -21,6 +22,13 @@ mongoose
   .catch((error) => {
     console.log(`Error: ${error}`);
   });
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser("helloworld"));
@@ -48,7 +56,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello, world!");
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
