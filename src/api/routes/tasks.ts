@@ -1,11 +1,9 @@
 import { Router, Request, Response } from "express";
-// import { tasks } from "../../utils/constants";
-import { ExtendedRequest, TaskType, UserType } from "../../../types";
+import { ExtendedRequest, UserType } from "../../../types";
 import { Task } from "../../schemas/mongoose/task";
 import { taskValidation } from "../../utils/validationSchema";
 import { checkSchema, matchedData, validationResult } from "express-validator";
 import { User } from "../../schemas/mongoose/user";
-import passport from "passport";
 import { resolveUserAuth } from "../../middlewares/resolveUserAuth";
 
 const router: Router = Router();
