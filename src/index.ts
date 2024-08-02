@@ -38,7 +38,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 60000 * 60,
+      maxAge: 60000 * 60 * 6,
       // secure: false
     }, // Change to true for production environment to enable HTTPS
     store: MongoStore.create({
