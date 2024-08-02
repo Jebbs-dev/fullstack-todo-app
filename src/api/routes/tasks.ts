@@ -35,7 +35,7 @@ router.post(
     const result = validationResult(req);
 
     if (!result.isEmpty()) {
-      return res.status(400).send(result.array()[0].msg);
+      return res.status(400).send(result.array()[0].msg); 
     }
 
     const data = matchedData(req);
