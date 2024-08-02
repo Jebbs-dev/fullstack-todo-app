@@ -4,6 +4,7 @@ import { UserType } from "../../types";
 import { User } from "../schemas/mongoose/user";
 import { comparePassword } from "../utils/helpers";
 
+
 passport.serializeUser((user, done) => {
   console.log("Inside serialize user");
   console.log(user);
@@ -13,7 +14,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   console.log(`Inside deserialize user`);
   console.log(`Deserializing user id: ${id}`);
-
+  
   try {
     const user: UserType | null = await User.findById(id);
 
