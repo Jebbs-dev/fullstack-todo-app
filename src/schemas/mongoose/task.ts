@@ -4,12 +4,12 @@ const TaskSchema: Schema = new Schema({
   title: {type: String, required: true},
   status: {
     type: String,
-    enum: ["backlog", "todo", "in progress", "done", "cancelled"],
+    enum: ["Backlog", "Todo", "In Progress", "Done", "Cancelled"],
     required: true,
   },
   priority:{
     type: String,
-    enum: ["low", "medium", "high"],
+    enum: ["Low", "Medium", "High"],
     required: true,
   },
   userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
